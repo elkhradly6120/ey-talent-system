@@ -3,11 +3,6 @@
 import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://example.supabase.co",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder"
-);
-
 export default function Home() {
   const [form, setForm] = useState({
     full_name: "",
@@ -33,14 +28,15 @@ export default function Home() {
     e.preventDefault();
     setMessage("");
 
-    if (
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    ) {
-      setMessage("المنصة تحتاج إلى إعداد الاتصال بقاعدة البيانات أولاً.");
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+    if (!supabaseUrl || !/^https?:\/\/.+/.test(supabaseUrl) || !supabaseKey) {
+      setMessage("إعدادات الاتصال بقاعدة البيانات غير صحيحة.");
       return;
     }
 
+    const supabase = createClient(supabaseUrl, supabaseKey);
     setLoading(true);
 
     const { error } = await supabase.from("talents").insert([{
@@ -118,54 +114,41 @@ export default function Home() {
 
             <form onSubmit={submit}>
               <label>الاسم بالكامل *</label>
-              <input name="full_name" value={form.full_name}
-                onChange={update} required />
+              <input name="full_name" value={form.full_name} onChange={update} required />
 
               <label>رقم الهاتف *</label>
-              <input name="phone" type="tel" value={form.phone}
-                onChange={update} required />
+              <input name="phone" type="tel" value={form.phone} onChange={update} required />
 
               <label>البريد الإلكتروني</label>
-              <input name="email" type="email" value={form.email}
-                onChange={update} />
+              <input name="email" type="email" value={form.email} onChange={update} />
 
               <label>المحافظة *</label>
-              <input name="governorate" value={form.governorate}
-                onChange={update} required />
+              <input name="governorate" value={form.governorate} onChange={update} required />
 
               <label>العمر *</label>
-              <input name="age" type="number" min="1" max="120"
-                value={form.age} onChange={update} required />
+              <input name="age" type="number" min="1" max="120" value={form.age} onChange={update} required />
 
               <label>مجال الموهبة *</label>
-              <input name="talent_fields" value={form.talent_fields}
-                onChange={update} placeholder="مثل: البرمجة، التصميم، الإعلام"
-                required />
+              <input name="talent_fields" value={form.talent_fields} onChange={update} placeholder="مثل: البرمجة، التصميم، الإعلام" required />
 
               <label>المهارات</label>
-              <textarea name="skills" rows="3" value={form.skills}
-                onChange={update} />
+              <textarea name="skills" rows="3" value={form.skills} onChange={update} />
 
               <label>الخبرات السابقة</label>
-              <textarea name="experience" rows="3"
-                value={form.experience} onChange={update} />
+              <textarea name="experience" rows="3" value={form.experience} onChange={update} />
 
               <label>روابط الأعمال أو نماذج من موهبتك</label>
-              <input name="portfolio_links" value={form.portfolio_links}
-                onChange={update} placeholder="رابط أعمالك إن وجد" />
+              <input name="portfolio_links" value={form.portfolio_links} onChange={update} placeholder="رابط أعمالك إن وجد" />
 
               <label>مدى التفرغ أو الاستعداد للمشاركة</label>
-              <textarea name="availability" rows="2"
-                value={form.availability} onChange={update} />
+              <textarea name="availability" rows="2" value={form.availability} onChange={update} />
 
               <button className="btn gold" type="submit" disabled={loading}>
                 {loading ? "جارٍ الإرسال..." : "إرسال التسجيل"}
               </button>
 
               {message && (
-                <p role="status" style={{ color: "#d4af37" }}>
-                  {message}
-                </p>
+                <p role="status" style={{ color: "#d4af37" }}>{message}</p>
               )}
             </form>
           </div>
